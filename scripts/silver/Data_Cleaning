@@ -134,3 +134,38 @@ from (
 	ROW_NUMBER() over(partition by cst_id order by cst_create_date desc) as flag_last
 	from bronze.crm_cust_info) t
 where flag_last = 1 and cst_id is not null;
+
+-- after cleaning and loading to the table then check and verify
+
+select 
+cst_id,
+count(*)
+from silver.crm_cust_info
+group by cst_id
+having count(*) >1 or cst_id is null
+
+select cst_firstname
+from silver.crm_cust_info
+where cst_firstname != TRIM(cst_firstname)
+
+select cst_lastname
+from silver.crm_cust_info
+where cst_lastname != TRIM(cst_lastname)
+
+select cst_gndr
+from silver.crm_cust_info
+where cst_gndr != TRIM(cst_gndr)
+
+-- Expectation: No results
+select cst_key
+from silver.crm_cust_info
+where cst_key != trim(cst_key)
+
+-- Data standardization & Consistency
+Select distinct cst_gndr
+from silver.crm_cust_info;
+
+Select distinct cst_marital_status
+from silver.crm_cust_info;
+
+select * from silver.crm_cust_info;
