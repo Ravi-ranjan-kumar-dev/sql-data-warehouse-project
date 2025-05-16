@@ -1,0 +1,136 @@
+-- Check for nulls or Duplicates in Primary Key
+-- Expectation: No result
+select 
+cst_id,
+count(*) cnt
+from bronze.crm_cust_info
+group by cst_id
+having count(*) >1 or cst_id  is not null
+
+select * from bronze.crm_cust_info;
+
+select 
+*,
+ROW_NUMBER() over(partition by cst_id order by cst_create_date desc) as flag_last
+from bronze.crm_cust_info
+where cst_id = 29466;
+
+select 
+*,
+ROW_NUMBER() over(partition by cst_id order by cst_create_date desc) as flag_last
+from bronze.crm_cust_info;
+
+select
+* 
+from (
+	select 
+	*,
+	ROW_NUMBER() over(partition by cst_id order by cst_create_date desc) as flag_last
+	from bronze.crm_cust_info
+	)t
+where flag_last != 1 
+
+select
+* 
+from (
+	select 
+	*,
+	ROW_NUMBER() over(partition by cst_id order by cst_create_date desc) as flag_last
+	from bronze.crm_cust_info
+	)t
+where flag_last = 1 and cst_id =29466;
+
+
+select
+* 
+from (
+	select 
+	*,
+	ROW_NUMBER() over(partition by cst_id order by cst_create_date desc) as flag_last
+	from bronze.crm_cust_info
+	)t
+where flag_last = 1 and cst_id is not null;
+
+-- Check for unwanted spaces
+-- Expectation: No results
+
+select cst_firstname
+from bronze.crm_cust_info
+where cst_firstname != TRIM(cst_firstname)
+
+select cst_lastname
+from bronze.crm_cust_info
+where cst_lastname != TRIM(cst_lastname)
+
+select cst_gndr
+from bronze.crm_cust_info
+where cst_gndr != TRIM(cst_gndr)
+
+-- Expectation: No results
+select cst_key
+from bronze.crm_cust_info
+where cst_key != trim(cst_key)
+
+-- Data standardization & Consistency
+Select distinct cst_gndr
+from bronze.crm_cust_info;
+
+Select distinct cst_marital_status
+from bronze.crm_cust_info;
+
+select 
+cst_id,
+cst_key,
+trim(cst_firstname),
+trim(cst_lastname),
+case
+	when upper(trim(cst_marital_status)) = 'S' then 'Single'
+	when upper(trim(cst_marital_status)) = 'M' then 'Married'
+	else 'n/a'
+end cst_marital_status,
+case
+	when upper(trim(cst_gndr)) = 'M' then 'Male'
+	when upper(trim(cst_gndr)) = 'F' then 'Female'
+	else 'n/a'
+end cst_gndr,
+cst_create_date 
+from (
+	select
+	*,
+	ROW_NUMBER() over(partition by cst_id order by cst_create_date desc) as flag_last
+	from bronze.crm_cust_info) t
+where flag_last = 1 and cst_id is not null;
+
+
+
+Insert into silver.crm_cust_info (
+	cst_id,
+	cst_key,
+	cst_firstname,
+	cst_lastname,
+	cst_marital_status,
+	cst_gndr,
+	cst_create_date)
+
+select 
+cst_id,
+cst_key,
+trim(cst_firstname),
+trim(cst_lastname),
+case
+	when upper(trim(cst_marital_status)) = 'S' then 'Single'
+	when upper(trim(cst_marital_status)) = 'M' then 'Married'
+	else 'n/a'
+end cst_marital_status,
+case
+	when upper(trim(cst_gndr)) = 'M' then 'Male'
+	when upper(trim(cst_gndr)) = 'F' then 'Female'
+	else 'n/a'
+end cst_gndr,
+cst_create_date 
+from (
+	select
+	*,
+	ROW_NUMBER() over(partition by cst_id order by cst_create_date desc) as flag_last
+	from bronze.crm_cust_info) t
+where flag_last = 1 and cst_id is not null;
