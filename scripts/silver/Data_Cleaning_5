@@ -1,0 +1,49 @@
+select * from bronze.erp_loc_a101;
+
+select cst_key from bronze.crm_cust_info;
+
+select
+Replace(cid, '-', '') as cid,
+cntry
+from bronze.erp_loc_a101;
+
+
+select
+Replace(cid, '-', '') as cid,
+cntry
+from bronze.erp_loc_a101
+where Replace(cid, '-', '') not in (select cst_key from bronze.crm_cust_info);
+
+
+-- Data standardization and consistency
+select 
+distinct cntry as old_cntry,
+case
+	when trim(cntry) = 'DE' then 'Germany'
+	when trim(cntry) in ('US', 'USA') then 'United States'
+	when trim(cntry) = '' or cntry is null then 'n/a'
+	else trim(cntry)
+end as cntry
+from bronze.erp_loc_a101
+order by cntry;
+
+
+Insert into silver.erp_loc_a101
+(cid, cntry)
+select
+Replace(cid, '-', '') as cid,
+case
+	when trim(cntry) = 'DE' then 'Germany'
+	when trim(cntry) in ('US', 'USA') then 'United States'
+	when trim(cntry) = '' or cntry is null then 'n/a'
+	else trim(cntry)
+end as cntry       -- Normalize and handle missing or blank country codes
+from bronze.erp_loc_a101;
+
+
+-- Data standardization & consistency
+select distinct cntry
+from silver.erp_loc_a101
+order by cntry;
+
+select * from silver.erp_loc_a101;
