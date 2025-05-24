@@ -1,0 +1,125 @@
+select 
+	pn.prd_id,
+	pn.cat_id,
+	pn.prd_key,
+	pn.prd_cost,
+	pn.prd_line,
+	pn.prd_start_dt,
+	pn.prd_end_dt
+from silver.crm_prd_info pn;
+Go
+
+select 
+	pn.prd_id,
+	pn.cat_id,
+	pn.prd_key,
+	pn.prd_cost,
+	pn.prd_line,
+	pn.prd_start_dt,
+	pn.prd_end_dt
+from silver.crm_prd_info pn
+where prd_end_dt is null;    -- filter out all historical data
+Go
+
+select 
+	pn.prd_id,
+	pn.cat_id,
+	pn.prd_key,
+	pn.prd_cost,
+	pn.prd_line,
+	pn.prd_start_dt,
+	pc.cat,
+	pc.subcat,
+	pc.maintenance
+from silver.crm_prd_info pn
+left join silver.erp_px_cat_g1v2 pc
+on pn.cat_id = pc.id
+where prd_end_dt is null; 
+Go
+
+
+-- To find duplicate values/Records
+select prd_key, count(*) from 
+(select 
+	pn.prd_id,
+	pn.cat_id,
+	pn.prd_key,
+	pn.prd_cost,
+	pn.prd_line,
+	pn.prd_start_dt,
+	pc.cat,
+	pc.subcat,
+	pc.maintenance
+from silver.crm_prd_info pn
+left join silver.erp_px_cat_g1v2 pc
+on pn.cat_id = pc.id
+where prd_end_dt is null)t
+Group by prd_key
+Having count(*) > 1; 
+Go
+
+select 
+	pn.prd_id as Product_id,
+	pn.prd_key as Product_key,
+	pn.prd_nm as Product_name,
+	pn.cat_id as Category_id,
+	pc.cat as Category,
+	pc.subcat as Subcategory,
+	pc.maintenance,
+	pn.prd_cost as Cost,
+	pn.prd_line as Product_line,
+	pn.prd_start_dt as Start_date
+	
+from silver.crm_prd_info pn
+left join silver.erp_px_cat_g1v2 pc
+on pn.cat_id = pc.id
+where prd_end_dt is null;
+Go
+
+
+select 
+	ROW_NUMBER() over (order by pn.prd_start_dt, pn.prd_key) as Product_key,
+	pn.prd_id as Product_id,
+	pn.prd_key as Product_key,
+	pn.prd_nm as Product_name,
+	pn.cat_id as Category_id,
+	pc.cat as Category,
+	pc.subcat as Subcategory,
+	pc.maintenance,
+	pn.prd_cost as Cost,
+	pn.prd_line as Product_line,
+	pn.prd_start_dt as Start_date
+	
+from silver.crm_prd_info pn
+left join silver.erp_px_cat_g1v2 pc
+on pn.cat_id = pc.id
+where prd_end_dt is null;
+Go
+
+
+Create view gold.dim_products as
+select 
+	ROW_NUMBER() over (order by pn.prd_start_dt, pn.prd_key) as Product_key,
+	pn.prd_id as Product_id,
+	pn.prd_key as Product_number,
+	pn.prd_nm as Product_name,
+	pn.cat_id as Category_id,
+	pc.cat as Category,
+	pc.subcat as Subcategory,
+	pc.maintenance,
+	pn.prd_cost as Cost,
+	pn.prd_line as Product_line,
+	pn.prd_start_dt as Start_date
+	
+from silver.crm_prd_info pn
+left join silver.erp_px_cat_g1v2 pc
+on pn.cat_id = pc.id
+where prd_end_dt is null;
+Go
+
+
+select * from Gold.dim_products;
+Go
+
+
+
