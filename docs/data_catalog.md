@@ -1,8 +1,8 @@
-Data Dictionary for Gold layer
-Overview
+# Data Dictionary for Gold layer
+## Overview
 The Gold layer is the business-level data representation, structured to support analytical and reporting use cases. It consists of dimesnsion tables and fact tables for specific business metrics.
 1. gold.dim_customers
-  •	Purpose: Stores customer details enriched with demographic and geographic data.
+  • Purpose: Stores customer details enriched with demographic and geographic data.
   • Columns:
    
    Column Name	Data type	Description
@@ -48,4 +48,3 @@ sales_amount	INT	The total monetary value of the sale for the line item, in whol
 quantity	INT	The number of the units of the prouduct ordered for the line item( eg. 1).
 price	INT	The price per unit of the product for the line item, in whole currency units(eg. 25).
 		
-
